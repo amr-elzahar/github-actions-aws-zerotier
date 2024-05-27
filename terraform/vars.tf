@@ -10,3 +10,7 @@ variable "zt_network_id" {
   type = string
   description = "ZeroTier Network ID"
 }
+variable "zt_network_cidr" {
+  type = string
+  description = "ZeroTier Network CIDR Block"
+}

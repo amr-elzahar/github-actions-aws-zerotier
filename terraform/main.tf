@@ -62,7 +62,7 @@ resource "aws_route_table" "public-rt" {
   }
 
 route {
-    cidr_block = "10.147.19.0/24"
+    cidr_block = var.zt_network_cidr
     network_interface_id =  aws_instance.public-instance.primary_network_interface_id
   }
   tags = {
@@ -97,7 +97,7 @@ resource "aws_route_table" "private01-rt" {
   }
 
   route {
-    cidr_block = "10.147.19.0/24"
+    cidr_block = var.zt_network_cidr
     network_interface_id =  aws_instance.public-instance.primary_network_interface_id
   }
 
