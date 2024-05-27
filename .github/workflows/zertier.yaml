@@ -26,9 +26,9 @@ jobs:
           curl -s -X POST -H "Authorization: Bearer ${{ secrets.ZEROTIER_API_TOKEN }}" \
           --data '{"config": {"authorized": true}}' \
             "https://my.zerotier.com/api/v1/network/${{ secrets.ZEROTIER_NETWORK_ID }}/member/${{env.ZEROTIER_CLIENT_ID}}"
-      - name: Test Connectivity to the VPC Router Netork Interface
+      - name: Test Connectivity to the VPC Router Network Interface
         run: |
           ping -c 5 10.147.19.71
-      - name: Test Connectivity to the VPC Router Netork Interface
+      - name: Test Connectivity to the Private IP of EC2 Router
         run: |
-          ping -c 5 3.88.144.94
+          ping -c 5 10.90.1.136
