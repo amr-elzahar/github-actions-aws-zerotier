@@ -6,3 +6,7 @@ variable "aws_secret_access_key" {
   type        = string
   description = "AWS Secret Acces Key"
 }
+variable "zt_network_id" {
+  type = string
+  description = "ZeroTier Network ID"
+}

@@ -5,7 +5,7 @@ provider "aws" {
 }
 
 resource "aws_vpc" "gihub-actions-aws_vpc" {
-  cidr_block = "10.90.0.0/24"
+  cidr_block = "10.90.0.0/16"
 
   tags = {
     Name = "GitHub Actions VPC"
@@ -15,7 +15,7 @@ resource "aws_vpc" "gihub-actions-aws_vpc" {
 
 resource "aws_subnet" "public-subnet" {
   vpc_id            = aws_vpc.gihub-actions-aws_vpc.id
-  cidr_block        = "10.90.10.0/24"
+  cidr_block        = "10.90.1.0/24"
   availability_zone = "us-east-1a"
 
   tags = {
@@ -27,7 +27,7 @@ resource "aws_subnet" "public-subnet" {
 
 resource "aws_subnet" "private-subnet01" {
   vpc_id            = aws_vpc.gihub-actions-aws_vpc.id
-  cidr_block        = "10.90.20.0/24"
+  cidr_block        = "10.90.2.0/24"
   availability_zone = "us-east-1a"
 
   tags = {
@@ -37,7 +37,7 @@ resource "aws_subnet" "private-subnet01" {
 
 resource "aws_subnet" "private-subnet02" {
   vpc_id            = aws_vpc.gihub-actions-aws_vpc.id
-  cidr_block        = "10.90.21.0/24"
+  cidr_block        = "10.90.3.0/24"
   availability_zone = "us-east-1a"
 
   tags = {
@@ -61,6 +61,10 @@ resource "aws_route_table" "public-rt" {
     gateway_id = aws_internet_gateway.github-actions-igw.id
   }
 
+route {
+    cidr_block = "10.147.19.0/24"
+    network_interface_id =  aws_instance.public-instance.primary_network_interface_id
+  }
   tags = {
     Name = "Public Route Table"
   }
@@ -89,7 +93,12 @@ resource "aws_route_table" "private01-rt" {
 
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.github-actions-igw.id
+    nat_gateway_id = aws_nat_gateway.github-actions-ngw.id
+  }
+
+  route {
+    cidr_block = "10.147.19.0/24"
+    network_interface_id =  aws_instance.public-instance.primary_network_interface_id
   }
 
   tags = {
@@ -99,13 +108,6 @@ resource "aws_route_table" "private01-rt" {
 
 resource "aws_route_table" "private02-rt" {
   vpc_id = aws_vpc.gihub-actions-aws_vpc.id
-
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.github-actions-igw.id
-  }
-
-
   tags = {
     Name = "Private02 Route Table"
   }
@@ -122,7 +124,7 @@ resource "aws_route_table_association" "private02-rt-association" {
 }
 
 
-resource "aws_security_group" "instance" {
+resource "aws_security_group" "public-sg" {
   vpc_id = aws_vpc.gihub-actions-aws_vpc.id
 
   ingress {
@@ -158,14 +160,21 @@ resource "aws_security_group" "instance" {
   }
 }
 
-resource "aws_instance" "web" {
-  ami                         = "ami-04b70fa74e45c3917" # Ubuntu
-  instance_type               = "t2.micro"
-  subnet_id                   = aws_subnet.public-subnet.id
-  security_groups             = [aws_security_group.instance.name]
+resource "aws_instance" "public-instance" {
+  ami           = "ami-04b70fa74e45c3917" # Ubuntu
+  instance_type = "t2.micro"
+  subnet_id     = aws_subnet.public-subnet.id
+  # security_groups             = [aws_security_group.public-sg.id]
+  vpc_security_group_ids      = [aws_security_group.public-sg.id]
   associate_public_ip_address = true
+  key_name                    = "myAwsKeyPair"
+  user_data = <<-EOF
+    #!/bin/bash
+    curl -s https://install.zerotier.com | sudo bash
+    sudo zerotier-cli join ${var.zt_network_id}
+  EOF
 
   tags = {
-    Name = "Public Subnet"
+    Name = "Public EC2 Instance"
   }
 }
