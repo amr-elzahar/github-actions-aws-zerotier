@@ -7,10 +7,10 @@ variable "aws_secret_access_key" {
   description = "AWS Secret Acces Key"
 }
 variable "zt_network_id" {
-  type = string
+  type        = string
   description = "ZeroTier Network ID"
 }
 variable "zt_network_cidr" {
-  type = string
+  type        = string
   description = "ZeroTier Network CIDR Block"
 }

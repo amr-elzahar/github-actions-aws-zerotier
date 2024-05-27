@@ -61,9 +61,9 @@ resource "aws_route_table" "public-rt" {
     gateway_id = aws_internet_gateway.github-actions-igw.id
   }
 
-route {
-    cidr_block = var.zt_network_cidr
-    network_interface_id =  aws_instance.public-instance.primary_network_interface_id
+  route {
+    cidr_block           = var.zt_network_cidr
+    network_interface_id = aws_instance.public-instance.primary_network_interface_id
   }
   tags = {
     Name = "Public Route Table"
@@ -92,13 +92,13 @@ resource "aws_route_table" "private01-rt" {
   vpc_id = aws_vpc.gihub-actions-aws_vpc.id
 
   route {
-    cidr_block = "0.0.0.0/0"
+    cidr_block     = "0.0.0.0/0"
     nat_gateway_id = aws_nat_gateway.github-actions-ngw.id
   }
 
   route {
-    cidr_block = var.zt_network_cidr
-    network_interface_id =  aws_instance.public-instance.primary_network_interface_id
+    cidr_block           = var.zt_network_cidr
+    network_interface_id = aws_instance.public-instance.primary_network_interface_id
   }
 
   tags = {
@@ -168,7 +168,7 @@ resource "aws_instance" "public-instance" {
   vpc_security_group_ids      = [aws_security_group.public-sg.id]
   associate_public_ip_address = true
   key_name                    = "myAwsKeyPair"
-  user_data = <<-EOF
+  user_data                   = <<-EOF
     #!/bin/bash
     curl -s https://install.zerotier.com | sudo bash
     sudo zerotier-cli join ${var.zt_network_id}
@@ -176,5 +176,57 @@ resource "aws_instance" "public-instance" {
 
   tags = {
     Name = "Public EC2 Instance"
+  }
+}
+
+// Route 53 Endpoints and Its SG
+resource "aws_security_group" "route53-sg" {
+  vpc_id = aws_vpc.gihub-actions-aws_vpc.id
+
+  ingress {
+    from_port   = 53
+    to_port     = 53
+    protocol    = "tcp"
+    cidr_blocks = ["10.0.0.0/8"]
+  }
+
+  ingress {
+    from_port   = 53
+    to_port     = 53
+    protocol    = "udp"
+    cidr_blocks = ["10.0.0.0/8"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "Route 53 Security Group"
+  }
+}
+
+resource "aws_route53_resolver_endpoint" "zerotier-endpoints" {
+  name      = "ZeroTier Inbound Endpoint"
+  direction = "INBOUND"
+
+  security_group_ids = [aws_security_group.route53-sg.id]
+
+  ip_address {
+    subnet_id = aws_subnet.private-subnet01.id
+  }
+
+  ip_address {
+    subnet_id = aws_subnet.private-subnet02.id
+  }
+
+  protocols = ["Do53", "DoH"]
+
+
+  tags = {
+    Environment = "Route 53 Inbound Endpoints"
   }
 }

@@ -32,3 +32,9 @@ jobs:
       - name: Test Connectivity to the Private IP of EC2 Router
         run: |
           ping -c 5 10.90.1.136
+      - name: Test DNS Resolution Agains Route 53 Resolver 01
+        run: |
+          ping -c 5 ip-10-90-1-136.ec2.internal 10.90.3.247
+      - name: Test DNS Resolution Agains Route 53 Resolver 01
+        run: |
+          ping -c 5 ip-10-90-1-136.ec2.internal 10.90.2.6
