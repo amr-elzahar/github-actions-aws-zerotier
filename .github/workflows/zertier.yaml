@@ -1,0 +1,28 @@
+name: AWS ZeroTier Workflow
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+jobs:
+  zerotier:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install ZeroTier Clinet on GitHub Runner
+        run: |
+          curl -s https://install.zerotier.com | sudo bash
+      - name: Join ZeroTier Network
+        run: |
+          sudo zerotier-cli join ${{ secrets.ZEROTIER_NETWORK_ID }}
+          sudo zerotier-cli listnetworks
+      - name: Get ZeroTier Client ID
+        run: |
+          ZEROTIER_CLIENT_ID=$(sudo zerotier-cli info | awk '{print $3}')
+          echo "ZEROTIER_CLIENT_ID=$ZEROTIER_CLIENT_ID" >> $GITHUB_ENV
+      - name: Authorize ZeroTier Client
+        env:
+          ZEROTIER_CLIENT_ID: ${{ env.ZEROTIER_CLIENT_ID}}
+        run: |
+          curl -s -X POST -H "Authorization: Bearer ${{ secrets.ZEROTIER_API_TOKEN }}" \
+          --data '{"config": {"authorized": true}}' \
+            "https://my.zerotier.com/api/v1/network/${{ secrets.ZEROTIER_NETWORK_ID }}/member/${{env.ZEROTIER_CLIENT_ID}}"
