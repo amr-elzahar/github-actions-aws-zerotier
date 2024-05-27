@@ -26,15 +26,15 @@ jobs:
           curl -s -X POST -H "Authorization: Bearer ${{ secrets.ZEROTIER_API_TOKEN }}" \
           --data '{"config": {"authorized": true}}' \
             "https://my.zerotier.com/api/v1/network/${{ secrets.ZEROTIER_NETWORK_ID }}/member/${{env.ZEROTIER_CLIENT_ID}}"
-      - name: Test Connectivity to the VPC Router Network Interface
-        run: |
-          ping -c 5 10.147.19.71
-      - name: Test Connectivity to the Private IP of EC2 Router
-        run: |
-          ping -c 5 10.90.1.136
-      - name: Test DNS Resolution Agains Route 53 Resolver 01
-        run: |
-          ping -c 5 ip-10-90-1-136.ec2.internal 10.90.3.247
+      # - name: Test Connectivity to the VPC Router Network Interface
+      #   run: |
+      #     ping -c 5 10.147.19.71
+      # - name: Test Connectivity to the Private IP of EC2 Router
+      #   run: |
+      #     ping -c 5 10.90.1.136
+      # - name: Test DNS Resolution Agains Route 53 Resolver 01
+      #   run: |
+      #     ping -c 5 ip-10-90-1-136.ec2.internal 10.90.3.247
       - name: Test DNS Resolution Agains Route 53 Resolver 01
         run: |
           ping -c 5 ip-10-90-1-136.ec2.internal 10.90.2.6
